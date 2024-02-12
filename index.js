@@ -20,7 +20,7 @@ const db = new sqlite3.Database('database.db', (err) => {
         console.error('Failed to connect to database:', err);
     } else {
         console.log('Connected to the database.');
-        // Create the locations table if it doesn't exist
+        // Creating the locations table if it doesn't exist
         db.run(`CREATE TABLE IF NOT EXISTS locations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             address TEXT,
@@ -38,7 +38,7 @@ const db = new sqlite3.Database('database.db', (err) => {
 });
 
 
-//setup server
+//setting up server
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });

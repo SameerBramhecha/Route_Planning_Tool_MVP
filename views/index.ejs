@@ -31,7 +31,7 @@
     <script>
 
     window.addEventListener('beforeunload', function (event) {
-        // Make a request to clear the locations database when the page refreshes
+        // Making a request to clear the locations database when the page refreshes
         const xhr = new XMLHttpRequest();
         xhr.open('DELETE', '/clear-locations');
         xhr.onload = function () {
@@ -52,7 +52,7 @@
                 let directionsRenderer;
 
             function initMap() {
-                // Try HTML5 geolocation
+                
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(function (position) {
                         const currentLocation = {
@@ -69,10 +69,10 @@
                             title: 'Your Location'
                         });
 
-                        // Add Autocomplete functionality to the input field
+                        
                         autocomplete = new google.maps.places.Autocomplete(document.getElementById('addressInput'));
                         autocomplete.bindTo('bounds', map);
-                        // Initialize Directions Service and Renderer
+                        // Initializing Directions Service and Renderer
                         directionsService = new google.maps.DirectionsService();
                         directionsRenderer = new google.maps.DirectionsRenderer();
                         directionsRenderer.setMap(map);
@@ -80,7 +80,7 @@
                         handleLocationError(true, map.getCenter());
                     });
                 } else {
-                    // Browser doesn't support Geolocation
+                    // if Browser doesn't support Geolocation
                     handleLocationError(false, map.getCenter());
                 }
                  
@@ -110,7 +110,7 @@
                         const lat = location.lat();
                         const lng = location.lng();
 
-                        // Send the address, latitude, and longitude to the server to store in the database
+                        // Sending the address, latitude, and longitude to the server to store in the database
                         fetch('/add-location', {
                             method: 'POST',
                             headers: {
@@ -120,7 +120,7 @@
                         })
                             .then(response => response.json())
                             .then(data => {
-                                // Add marker to the map
+                                // Adding marker to the map
                                 const marker = new google.maps.Marker({
                                     position: location,
                                     map: map,
@@ -128,14 +128,14 @@
                                     jobId: data.jobId
                                 });
                                 markers.push(marker);
-                                // Display the entered address and job ID in the list
+                                // Displaying the entered address and job ID in the list
                                 const addressesList = document.getElementById('addresses');
                                 const listItem = document.createElement('li');
                                 listItem.id = `job-${data.jobId}`;
                                 const addressText = document.createTextNode(`${address} (Job ID: ${data.jobId})`);
                                 listItem.appendChild(addressText);
 
-                                // Create and add a button to mark the job as completed
+                                // Creating and adding a button to mark the job as completed
                                 const markCompletedButton = document.createElement('button');
                                 markCompletedButton.textContent = 'Mark as Completed';
                                 markCompletedButton.addEventListener('click', function () {
@@ -160,18 +160,18 @@
                     .then(response => {
                         if (response.ok) {
                             console.log(`Job ${jobId} marked as completed.`);
-                            // Remove the completed job from the list
+                            // Removing the completed job from the list
                             const listItem = document.getElementById(`job-${jobId}`);
                             if (listItem) {
                                 listItem.parentNode.removeChild(listItem);
                             } else {
                                 console.error('List item not found.');
                             }
-                            // Remove the corresponding marker from the map
+                            // Removing the corresponding marker from the map
                             const markerIndex = markers.findIndex(marker => marker.jobId === jobId);
                             if (markerIndex !== -1) {
                                 const marker = markers.splice(markerIndex, 1)[0];
-                                marker.setMap(null); // Remove the marker from the map
+                                marker.setMap(null); // Removing the marker from the map
                             } else {
                                 console.error('Marker not found.');
                             }
@@ -188,13 +188,13 @@
                     return;
                 }
 
-                // Get the current location
+                // Geting the current location
                 const currentLocation = currentLocationMarker.getPosition();
 
-                // Get the coordinates of all the addresses
+                // Geting the coordinates of all the addresses
                 const addresses = markers.map(marker => marker.getPosition());
 
-                // Create an array to hold all the permutations of addresses
+                // Creating an array to hold all the permutations of addresses
                 const permutations = [];
 
                 // Function to generate permutations using Heap's algorithm
@@ -207,7 +207,7 @@
                     for (let i = 0; i < n; i++) {
                         generatePermutations(array, n - 1);
 
-                        // Swap the elements if n is even, otherwise swap the first and last element
+                        // Swaping the elements if n is even, otherwise swap the first and last element
                         if (n % 2 === 0) {
                             [array[i], array[n - 1]] = [array[n - 1], array[i]];
                         } else {
@@ -216,19 +216,19 @@
                     }
                 };
 
-                // Generate permutations of addresses
+                // Generating permutations of addresses
                 generatePermutations(addresses, addresses.length);
 
-                // Initialize variables for the shortest route and its length
+                // Initializing variables for the shortest route and its length
                 let shortestRoute = null;
                 let shortestLength = Infinity;
 
-                // Iterate through each permutation to find the shortest route
+                // Iterating through each permutation to find the shortest route
                 for (const perm of permutations) {
                     let totalDistance = 0;
                     let currentLocationIndex = 0;
 
-                    // Calculate the total distance for the current permutation
+                    // Calculating the total distance for the current permutation
                     for (let i = 0; i < perm.length; i++) {
                         const distance = google.maps.geometry.spherical.computeDistanceBetween(
                             currentLocationIndex === 0 ? currentLocation : perm[currentLocationIndex - 1],
@@ -238,29 +238,29 @@
                         currentLocationIndex++;
                     }
 
-                    // Calculate the distance from the last address back to the current location
+                    // Calculating the distance from the last address back to the current location
                     const distanceToStart = google.maps.geometry.spherical.computeDistanceBetween(
                         perm[perm.length - 1],
                         currentLocation
                     );
                     totalDistance += distanceToStart;
 
-                    // Update the shortest route and its length if applicable
+                    // Updating the shortest route and its length if applicable
                     if (totalDistance < shortestLength) {
                         shortestRoute = perm.slice();
                         shortestLength = totalDistance;
                     }
                 }
 
-             // Convert the shortest length from meters to kilometers
+             // Converting the shortest length from meters to kilometers
             const shortestLengthKm = shortestLength / 1000;
 
-            // Display the path length of the shortest route in kilometers on the page
+            // Displaying the path length of the shortest route in kilometers on the page
             const pathDistanceElement = document.getElementById('pathDistance');
             pathDistanceElement.textContent = `Shortest path distance: ${shortestLengthKm.toFixed(2)} kilometers`;
 
 
-                // Display the shortest route on the map
+                // Displaying the shortest route on the map
                 const directionsService = new google.maps.DirectionsService();
                 const directionsRenderer = new google.maps.DirectionsRenderer();
 
